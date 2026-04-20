@@ -1,0 +1,119 @@
+---
+title: "Introduction to aiDIF: Detecting Differential Item Functioning in AI-Scored Assessments"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to aiDIF}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(aiDIF)
+```
+
+## Background
+
+When AI systems score essays, short-answer responses, or structured tasks,
+a critical fairness question arises: does the AI scoring engine shift item
+difficulties **differently** for different demographic groups?
+
+Classical DIF methods test whether an item performs differently across groups
+*within* a single scoring condition. `aiDIF` extends this to a paired design:
+
+1. **Human-scoring DIF** — robust M-estimation of item-level bias
+2. **AI-scoring DIF** — the same analysis applied to AI-scored data
+3. **Differential AI Scoring Bias (DASB)** — a new test for *group-dependent*
+   parameter shifts from human to AI scoring
+
+## The Example Dataset
+
+`make_aidif_eg()` returns a built-in example with item parameter MLEs for
+6 items in two groups under both scoring conditions.  The planted structure is:
+
+- **Item 1**: DIF in human scoring (intercept +0.5 in focal group)
+- **Item 3**: DASB — AI scoring adds +0.4 to the focal group intercept only
+- **Impact**: 0.5 SD (focal group higher on the latent trait)
+- **AI drift**: +0.1 uniform calibration offset across all items
+
+```{r data}
+eg <- make_aidif_eg()
+str(eg, max.level = 2)
+```
+
+## Fitting the Model
+
+`fit_aidif()` runs the robust IRLS engine under each scoring condition and
+performs the DASB test.
+
+```{r fit}
+mod <- fit_aidif(
+  human_mle = eg$human,
+  ai_mle    = eg$ai,
+  alpha     = 0.05
+)
+print(mod)
+```
+
+## Full Report
+
+```{r summary}
+summary(mod)
+```
+
+## The DASB Test
+
+`scoring_bias_test()` can also be called directly.
+
+```{r dasb}
+sb <- scoring_bias_test(eg$human, eg$ai)
+print(sb)
+```
+
+Item 3 should be significant, reflecting the planted group-dependent
+AI scoring bias.
+
+## AI-Effect Classification
+
+```{r effect}
+eff <- ai_effect_summary(mod$dif_human, mod$dif_ai)
+print(eff)
+```
+
+| Status | Meaning |
+|---|---|
+| `introduced` | AI scoring creates DIF not present under human scoring |
+| `masked` | AI scoring hides DIF that existed under human scoring |
+| `stable_dif` | DIF detected in both conditions |
+| `stable_clean` | No DIF in either condition |
+
+## Visualisations
+
+```{r plots, fig.width=7, fig.height=5, eval=FALSE}
+plot(mod, type = "dif_forest")   # human vs AI DIF side by side
+plot(mod, type = "dasb")         # DASB bar chart with error bars
+plot(mod, type = "weights")      # bi-square anchor weights
+```
+
+## Simulation
+
+```{r sim}
+dat <- simulate_aidif_data(
+  n_items    = 8,
+  n_obs      = 600,
+  dif_items  = c(1, 2),
+  dif_mag    = 0.5,
+  dasb_items = 5,
+  dasb_mag   = 0.4,
+  seed       = 123
+)
+sim_mod <- fit_aidif(dat$human, dat$ai)
+print(sim_mod)
+```
+
+## References
+
+- Holland, P. W., & Thayer, D. T. (1988). Differential item performance and
+  the Mantel-Haenszel procedure. In *Test validity* (pp. 129–145). Erlbaum.
+- Halpin, P., Nickodem, K., & Eagle, J. (2024). *robustDIF: Differential Item
+  Functioning Using Robust Scaling*. R package version 0.2.0.
