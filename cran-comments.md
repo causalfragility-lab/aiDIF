@@ -11,6 +11,10 @@
 * The Quarto TMPDIR warning is a Windows-only cosmetic issue in devtools
   and does not affect the package.
 
+* "DIF" (Differential Item Functioning) and "DASB" (Differential AI Scoring
+  Bias) are established and novel technical acronyms in psychometrics,
+  not misspellings.
+
 ## Downstream dependencies
 
 None (new submission).

@@ -45,8 +45,8 @@ The DASB is \eqn{\delta_{i2j} - \delta_{i1j}}.  Under
 \eqn{H_0: \text{DASB}_{ij} = 0} and independence across scoring
 conditions and groups,
 \deqn{\widehat{\mathrm{Var}}(\text{DASB}_{ij}) =
-  \sigma^2_{i1j}^{H} + \sigma^2_{i2j}^{H} +
-  \sigma^2_{i1j}^{AI} + \sigma^2_{i2j}^{AI}}
+  (\sigma_{i1j}^{H})^2 + (\sigma_{i2j}^{H})^2 +
+  (\sigma_{i1j}^{AI})^2 + (\sigma_{i2j}^{AI})^2}
 where each \eqn{\sigma^2} is the diagonal element of the corresponding
 group-specific covariance matrix.
 }
